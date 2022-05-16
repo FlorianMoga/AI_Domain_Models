@@ -119,8 +119,7 @@ class Photo:
         cv2.destroyAllWindows()"""
         return crop_img
 
-    def draw_all_segments(self):
-        coordinates = self.define_clusters()
+    def draw_all_segments(self, coordinates):
         original_img = Photo(self.path)
 
         for cl_num in range(self.n_clusters-1):
