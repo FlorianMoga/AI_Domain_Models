@@ -18,7 +18,8 @@ def inside(coordinate, table):
     topX, topY = table.get_topLeft()
     botX, botY = table.get_bottomRight()
 
-    return topX <= middleX <= botY and topY >= middleY >= botX
+    return topX <= middleX <= botX and topY >= middleY >= botY
+
 
 class Photo:
     def __init__(self, path):
@@ -45,7 +46,7 @@ class Photo:
 
         right_y = self.height - table_format[3]
         right_x = table_format[2]
-        self.table =  Rectangle([left_x, left_y], [right_x, right_y])
+        self.table = Rectangle([left_x, left_y], [right_x, right_y])
 
     def in_table(self, rectangle):
         min_x, max_y = self.table.get_topLeft()
@@ -145,21 +146,25 @@ class Photo:
 
     def test_associable_clusters(self, cl1_rectangle, cl2_rectangle):
         cl1_minX, cl1_maxY = cl1_rectangle.get_topLeft()
-        _, cl1_minY = cl1_rectangle.get_bottomRight()
-        _, cl2_maxY = cl2_rectangle.get_topLeft()
+        cl1_maxX, cl1_minY = cl1_rectangle.get_bottomRight()
+        cl2_minX, cl2_maxY = cl2_rectangle.get_topLeft()
         cl2_maxX, cl2_minY = cl2_rectangle.get_bottomRight()
 
-        size_cl1 = self.get_rectangles_by_cluster(cl1_rectangle.get_cluster())
-        size_cl2 = self.get_rectangles_by_cluster(cl2_rectangle.get_cluster())
-
-        associated_outer_table = Rectangle([cl1_minX, cl1_maxY], [cl2_maxX, cl2_minY])
-
-        cl12_coords = [1 for coordinate in self.coordinates if inside(coordinate, associated_outer_table)]
-
-        if len(size_cl1) + len(size_cl2) != sum(cl12_coords):
+        if abs(cl1_maxY - cl2_maxY) + abs(cl1_minY - cl2_minY) >= 10:
             return False
         else:
-            return abs(cl1_maxY - cl2_maxY) + abs(cl1_minY - cl2_minY) < 10
+            size_cl1 = self.get_rectangles_by_cluster(cl1_rectangle.get_cluster())
+            size_cl2 = self.get_rectangles_by_cluster(cl2_rectangle.get_cluster())
+
+            associated_outer_table = Rectangle([min(cl1_minX, cl2_minX), max(cl1_maxY, cl2_maxY)],
+                                               [max(cl1_maxX, cl2_maxX), min(cl1_minY, cl2_minY)])
+
+            cl12_coords = [1 for coordinate in self.coordinates if inside(coordinate, associated_outer_table)]
+
+            if len(size_cl1) + len(size_cl2) != sum(cl12_coords):
+                return False
+
+            return True
 
     def associable_clusters(self, outer_rectangles):
         for cl1 in outer_rectangles:
@@ -213,14 +218,13 @@ class Photo:
                 cluster_rectangle = self.get_outer_rectangle(cluster)
                 topX, topY = cluster_rectangle.get_topLeft()
                 botX, botY = cluster_rectangle.get_bottomRight()
-                cropped_segment = self.image[botY-1:topY+1, topX-1:botX+1]
+                cropped_segment = self.image[botY - 1:topY + 1, topX - 1:botX + 1]
 
                 # extracts text from cropped segment
-                data = pytesseract.image_to_string(cropped_segment, config=r'--psm 6 --oem 3' , output_type=Output.DICT)
+                data = pytesseract.image_to_string(cropped_segment, config=r'--psm 6 --oem 3', output_type=Output.DICT)
                 text.append(data['text'])
 
         return text
-
 
     def crop_segment(self, original_img, coordinates):
         crop_img = original_img[coordinates[1]:coordinates[3], coordinates[0]:coordinates[2]]
