@@ -1,6 +1,8 @@
 #performing flask imports
 from flask import Flask, request, jsonify
 import werkzeug
+import backend.extract_text as extrct
+from pathlib import Path
 
 app = Flask(__name__) #intance of our flask application
 
@@ -10,6 +12,7 @@ def upload():
         imagefile = request.files['image']
         filename = werkzeug.utils.secure_filename(imagefile.filename)
         imagefile.save("./uploadedImages/"+filename)
+        extrct.extract_text(Path().absolute()+'/uploadedImage/'+filename)
         return jsonify({
             "message":"Image Uploaded Successfully"
         })
