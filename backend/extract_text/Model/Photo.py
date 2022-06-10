@@ -2,7 +2,7 @@ import cv2
 import pytesseract
 from pytesseract import Output
 
-from Model.Rectangle import Rectangle
+from .Rectangle import Rectangle
 import numpy as np
 
 from sklearn.cluster import DBSCAN
@@ -213,7 +213,7 @@ class Photo:
         text = []
 
         for cl_num in self.clusters:
-            if cl_num != -1:
+            # if cl_num != -1:
                 cluster = self.get_rectangles_by_cluster(cl_num)
                 cluster_rectangle = self.get_outer_rectangle(cluster)
                 topX, topY = cluster_rectangle.get_topLeft()
@@ -236,7 +236,7 @@ class Photo:
     def draw_all_segments(self):
 
         for cl_num in self.clusters:
-            if cl_num != -1:
+            # if cl_num != -1:
                 cluster = self.get_rectangles_by_cluster(cl_num)
                 cluster_rectangle = self.get_outer_rectangle(cluster)
                 topX, topY = cluster_rectangle.get_topLeft()

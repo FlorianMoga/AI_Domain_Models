@@ -40,7 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String? message='';
 
   uploadImage() async{
-    final request = http.MultipartRequest("POST", Uri.parse("https://096b-2a02-2f0e-f211-4f00-8888-b646-7803-6319.eu.ngrok.io/upload"));
+    final request = http.MultipartRequest("POST", Uri.parse(" https://b6db-89-34-73-154.eu.ngrok.io/upload"));
     final headers = {
       "Content-type": "multipart/form-data"
     };

@@ -1,18 +1,18 @@
-from Model.Photo import Photo
-from Model.Rectangle import Rectangle
+from .Model.Photo import Photo
+from .Model.Rectangle import Rectangle
 
 import re
 
-def extract_text(fpath):
+def extract_text(img, table_corners):
     inv_table = [88, 548, 917, 1071]
     bolt_table = [58, 485, 944, 563]
 
     #file = r"C:\Users\Florian Moga\Desktop\GEP\Rechnung-12000032162-VR130027438-1.jpg"
-    file = fpath
+    #file = fpath
     # file = r'C:\Users\Florian Moga\Desktop\GEP\Rechnung-12000032162-VR130027438-1.jpg'
     # file = r'C:\Users\Florian Moga\Desktop\GEP\Invoice Florian Moga 2208883908600452-1.jpg'
-    original_invoice = Photo(file)
-    original_invoice.set_table(inv_table)
+    original_invoice = Photo(img)
+    original_invoice.set_table(table_corners)
     original_invoice.define_clusters()
     original_invoice.associate_clusters()
 
