@@ -3,13 +3,10 @@ import pytesseract
 from pytesseract import Output
 
 from Model.Rectangle import Rectangle
-import numpy as np
 
 from sklearn.cluster import DBSCAN
 
 import random
-
-import matplotlib.pyplot as plt
 
 
 def inside(coordinate, table):
@@ -55,6 +52,10 @@ class Photo:
 
     def get_characters_middlepoint(self):
         boxes = pytesseract.image_to_boxes(self.image, config=r'--psm 11 --oem 3')
+        table_is_present = True
+
+        if self.table is None:
+            table_is_present = False
 
         for box in boxes.splitlines():
             box = box.split(" ")
@@ -62,7 +63,9 @@ class Photo:
 
             rectangle = Rectangle([top_x, top_y], [bot_x, bot_y])
 
-            if not self.in_table(rectangle):
+            if not table_is_present:
+                self.coordinates.append(rectangle)
+            elif not self.in_table(rectangle):
                 self.coordinates.append(rectangle)
 
         middle_coordinates = [[r.get_middle()[0], self.height - r.get_middle()[1]] for r in self.coordinates]
@@ -77,7 +80,7 @@ class Photo:
 
         middle_coordinates = self.get_characters_middlepoint()
 
-        db = DBSCAN(eps=50, min_samples=3).fit(middle_coordinates)
+        db = DBSCAN(eps=40, min_samples=3).fit(middle_coordinates)
         labels = db.labels_
         self.n_clusters = len(set(labels))
         self.clusters = set(labels)
@@ -95,7 +98,7 @@ class Photo:
         for i in range(self.n_clusters):
             colors.append(color())
 
-        if noise == True:
+        if noise:
             colors.pop()
             colors.append([0, 0, 0])
 
@@ -150,7 +153,7 @@ class Photo:
         cl2_minX, cl2_maxY = cl2_rectangle.get_topLeft()
         cl2_maxX, cl2_minY = cl2_rectangle.get_bottomRight()
 
-        if abs(cl1_maxY - cl2_maxY) + abs(cl1_minY - cl2_minY) >= 10:
+        if abs(cl1_maxY - cl2_maxY) + abs(cl1_minY - cl2_minY) >= 15:
             return False
         else:
             size_cl1 = self.get_rectangles_by_cluster(cl1_rectangle.get_cluster())
@@ -197,7 +200,7 @@ class Photo:
         '''
             must_associate = self.associable_clusters(outer_rectangles)
 
-            if must_associate == None:
+            if must_associate is None:
                 break
 
             cluster_merge1, cluster_merge2 = must_associate
@@ -213,16 +216,27 @@ class Photo:
         text = []
 
         for cl_num in self.clusters:
-            if cl_num != -1:
-                cluster = self.get_rectangles_by_cluster(cl_num)
-                cluster_rectangle = self.get_outer_rectangle(cluster)
-                topX, topY = cluster_rectangle.get_topLeft()
-                botX, botY = cluster_rectangle.get_bottomRight()
-                cropped_segment = self.image[botY - 1:topY + 1, topX - 1:botX + 1]
+            # if cl_num != -1:
+            cluster = self.get_rectangles_by_cluster(cl_num)
+            cluster_rectangle = self.get_outer_rectangle(cluster)
+            topX, topY = cluster_rectangle.get_topLeft()
+            botX, botY = cluster_rectangle.get_bottomRight()
 
-                # extracts text from cropped segment
-                data = pytesseract.image_to_string(cropped_segment, config=r'--psm 6 --oem 3', output_type=Output.DICT)
-                text.append(data['text'])
+            if botY != 0:
+                botY -= 1
+            if topX != 0:
+                topY -= 1
+            if botX != self.width:
+                botX += 1
+            if topY != self.height:
+                topY += 1
+
+            cropped_segment = self.image[botY:topY, topX:botX]
+            print(topX, botX, topY, botY)
+
+            # extracts text from cropped segment
+            data = pytesseract.image_to_string(cropped_segment, config=r'--psm 6 --oem 3', output_type=Output.DICT)
+            text.append(data['text'])
 
         return text
 
@@ -236,13 +250,14 @@ class Photo:
     def draw_all_segments(self):
 
         for cl_num in self.clusters:
-            if cl_num != -1:
-                cluster = self.get_rectangles_by_cluster(cl_num)
-                cluster_rectangle = self.get_outer_rectangle(cluster)
-                topX, topY = cluster_rectangle.get_topLeft()
-                botX, botY = cluster_rectangle.get_bottomRight()
-                self.image = cv2.rectangle(self.image, [topX, topY], [botX, botY], (0, 0, 0))
-        self.show_img()
+            # if cl_num != -1:
+            cluster = self.get_rectangles_by_cluster(cl_num)
+            cluster_rectangle = self.get_outer_rectangle(cluster)
+            topX, topY = cluster_rectangle.get_topLeft()
+            botX, botY = cluster_rectangle.get_bottomRight()
+            self.image = cv2.rectangle(self.image, [topX, topY], [botX, botY], (0, 0, 0))
+
+        cv2.imwrite('Images/clustered_image.jpg', self.image)
 
     def show_img(self):
         cv2.imshow("image", self.image)
