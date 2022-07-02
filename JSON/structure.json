@@ -1,0 +1,31 @@
+{
+  "logo": "path/to/logo",
+  "invoiceNum": "INV-X78A",
+  "reciever": {
+    "companyName": "d",
+    "streetAddress": "b",
+    "city": "d",
+    "state": "b",
+    "zip": "d",
+    "country": "b",
+    "phone": "d"
+  },
+  "sender": {
+    "companyName": "d",
+    "streetAddress": "b",
+    "city": "d",
+    "state": "b",
+    "zip": "d",
+    "country": "b",
+    "phone": "d"
+  },
+  "date": {
+    "dateIssued": "d",
+    "dueDate": "b"
+  },
+  "amount": {
+    "currency": "$",
+    "amountDue": 1000,
+    "depositDue": 70.55
+  }
+}

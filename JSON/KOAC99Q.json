@@ -1,0 +1,31 @@
+{
+    "logo": "path/to/logo",
+    "invoiceNum": "KOAC99Q",
+    "reciever": {
+        "companyName": "Gep Solutions",
+        "streetAddress": "Somesului 34-36",
+        "city": "Cluj-Napoca",
+        "state": "Judetul Cluj",
+        "zip": "400394",
+        "country": "Romania",
+        "phone": "02715891362"
+    },
+    "sender": {
+        "companyName": "DELL",
+        "streetAddress": "someStreet 6",
+        "city": "Round Rock",
+        "state": "Texas",
+        "zip": "78682",
+        "country": "US",
+        "phone": "(800) 624-9897"
+    },
+    "date": {
+        "dateIssued": "Jul 1, 2022",
+        "dueDate": "Jul 31, 2022"
+    },
+    "amount": {
+        "currency": "$",
+        "amountDue": 2290.0,
+        "depositDue": 2290.0
+    }
+}

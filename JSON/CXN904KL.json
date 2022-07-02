@@ -1,0 +1,31 @@
+{
+    "logo": "path/to/logo",
+    "invoiceNum": "CXN904KL",
+    "reciever": {
+        "companyName": "GEP Solutions",
+        "streetAddress": "Somesului 34-36",
+        "city": "\u2018Cluj-Napoca",
+        "state": "Cluj",
+        "zip": "400394",
+        "country": "Romania",
+        "phone": "0215891342"
+    },
+    "sender": {
+        "companyName": "(CABLEXPERT",
+        "streetAddress": "Wittevrouwen 56",
+        "city": "Haven",
+        "state": "Almere",
+        "zip": "1358",
+        "country": "Netherlands",
+        "phone": "03452711588"
+    },
+    "date": {
+        "dateIssued": "Jun 20,2022",
+        "dueDate": "Aug 9, 2022"
+    },
+    "amount": {
+        "currency": "$",
+        "amountDue": 1071.0,
+        "depositDue": 1071.0
+    }
+}

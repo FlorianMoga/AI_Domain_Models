@@ -1,0 +1,41 @@
+---
+(CABLEXPERT
+
+str. Wittevrouwen 56
+Haven, Almere
+
+1358
+
+Netherlands
+03452711588
+---
+Billed To
+
+GEP Solutions
+
+str. Somesului 34-36
+‘Cluj-Napoca, Cluj
+400394
+
+Romania
+0215891342
+---
+Datelssued invoice Number Amount Due
+Jun 20,2022 CXN904KL $1,071.00
+---
+Due Date
+Aug 9, 2022
+---
+Balance Due $1,071.00
+---
+Notes
+
+Thank you for your business!
+
+Terms
+
+Please pay within 30 days using the link in your invoice email.
+---
+Page of 1
+Made with Invoicer ai's FREE plan.
+---

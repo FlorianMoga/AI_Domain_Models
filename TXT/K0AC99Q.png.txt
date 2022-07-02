@@ -1,0 +1,30 @@
+DELL
+
+str. someStreet 6
+Round Rock, Texas
+78682
+
+US
+
+(800) 624-9897
+---
+Date Issued = Invoice Number Amount Due
+Jul 1, 2022 KOAC99Q $2,290.00
+---
+Due Date
+Jul 31, 2022
+---
+Balance Due $2,290.00
+---
+Billed To
+
+Gep Solutions
+
+str. Somesului 34-36
+Cluj-Napoca, Judetul Cluj
+400394
+
+Romania
+
+02715891362
+---
