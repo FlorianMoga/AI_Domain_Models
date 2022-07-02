@@ -1,11 +1,9 @@
 import cv2
 import pytesseract
 from pytesseract import Output
-
 from Model.Rectangle import Rectangle
-
 from sklearn.cluster import DBSCAN
-
+import torch
 import random
 
 
@@ -22,20 +20,44 @@ class Photo:
     def __init__(self, path):
         self.path = path
         self.image = cv2.imread(path)
+        self.image_copy = None
         self.height, self.width, _ = self.image.shape
-
         self.clusters = []
         self.n_clusters = 0
         self.table = None
         self.coordinates = []
+        self.logo_coordinates = []
+        self.model = torch.hub.load('ultralytics/yolov5', 'custom', path=r'Weights/best.pt',
+                                    force_reload=True)
 
         self.change_ratio()
+        self.set_logo_coords()
 
     def change_ratio(self):
         ratio = 1000 / self.width
         self.width, self.height = 1000, int(self.height * ratio)
         dim = (self.width, self.height)
         self.image = cv2.resize(self.image, dim, interpolation=cv2.INTER_AREA)
+        self.image_copy = self.image.copy()
+
+    def set_logo_coords(self):
+        results = self.model(self.image, size=640)
+        print(results)
+        coords = results.xyxyn[0][:, :-1]
+
+        for coord in coords:
+            print(coord)
+            # if coord[4] >= 0.7:
+            x1, y1, x2, y2 = int(coord[0] * self.width), int(coord[1] * self.height), int(coord[2] * self.width), \
+                             int(coord[3] * self.height)
+            self.logo_coordinates.append([x1, y1, x2, y2])
+
+            self.image_copy = cv2.rectangle(self.image_copy, [x1, y1], [x2, y2], (0, 0, 0))
+            self.image_copy = cv2.putText(self.image_copy, f'Logo {str(int(coord[4] * 100))}%', (x1, y1 - 3),
+                                      cv2.FONT_HERSHEY_SIMPLEX,
+                                      1, (0, 0, 0), 1, cv2.LINE_AA)
+
+        print(f"Logo Coordinates : {self.logo_coordinates}")
 
     def set_table(self, table_format):
         left_y = self.height - table_format[1]
@@ -46,9 +68,24 @@ class Photo:
         self.table = Rectangle([left_x, left_y], [right_x, right_y])
 
     def in_table(self, rectangle):
+        if self.table is None:
+            return False
         min_x, max_y = self.table.get_topLeft()
         max_x, min_y = self.table.get_bottomRight()
         return min_x <= rectangle.get_middle()[0] <= max_x and min_y <= self.height - rectangle.get_middle()[1] <= max_y
+
+    def in_logo(self, rectangle):
+        if not self.logo_coordinates:
+            return False
+        for logo in self.logo_coordinates:
+            min_x, max_y, max_x, min_y = logo
+            max_y = self.height - max_y
+            min_y = self.height - min_y
+
+            if min_x <= rectangle.get_middle()[0] <= max_x and \
+                    min_y <= self.height - rectangle.get_middle()[1] <= max_y:
+                return True
+        return False
 
     def get_characters_middlepoint(self):
         boxes = pytesseract.image_to_boxes(self.image, config=r'--psm 11 --oem 3')
@@ -63,9 +100,9 @@ class Photo:
 
             rectangle = Rectangle([top_x, top_y], [bot_x, bot_y])
 
-            if not table_is_present:
+            if not table_is_present and self.logo_coordinates == []:
                 self.coordinates.append(rectangle)
-            elif not self.in_table(rectangle):
+            elif not self.in_table(rectangle) and not self.in_logo(rectangle):
                 self.coordinates.append(rectangle)
 
         middle_coordinates = [[r.get_middle()[0], self.height - r.get_middle()[1]] for r in self.coordinates]
@@ -216,27 +253,34 @@ class Photo:
         text = []
 
         for cl_num in self.clusters:
-            # if cl_num != -1:
-            cluster = self.get_rectangles_by_cluster(cl_num)
-            cluster_rectangle = self.get_outer_rectangle(cluster)
-            topX, topY = cluster_rectangle.get_topLeft()
-            botX, botY = cluster_rectangle.get_bottomRight()
+            if cl_num != -1:
+                cluster = self.get_rectangles_by_cluster(cl_num)
+                cluster_rectangle = self.get_outer_rectangle(cluster)
+                topX, topY = cluster_rectangle.get_topLeft()
+                botX, botY = cluster_rectangle.get_bottomRight()
 
-            if botY != 0:
-                botY -= 1
-            if topX != 0:
-                topY -= 1
-            if botX != self.width:
-                botX += 1
-            if topY != self.height:
-                topY += 1
+                if botY != 0:
+                    botY -= 1
+                if topX != 0:
+                    topY -= 1
+                if botX != self.width:
+                    botX += 1
+                if topY != self.height:
+                    topY += 1
 
-            cropped_segment = self.image[botY:topY, topX:botX]
-            print(topX, botX, topY, botY)
+                cropped_segment = self.image[botY:topY, topX:botX]
+                print(topX, botX, topY, botY)
 
-            # extracts text from cropped segment
-            data = pytesseract.image_to_string(cropped_segment, config=r'--psm 6 --oem 3', output_type=Output.DICT)
-            text.append(data['text'])
+                # extracts text from cropped segment
+                data = pytesseract.image_to_string(cropped_segment, config=r'--psm 6 --oem 3', output_type=Output.DICT)
+                text.append(data['text'])
+
+        text_file = open(f'TXT/{self.path.split("/")[1]}.txt', "w")
+        for segment in text:
+            text_file.write(segment)
+            text_file.write('---')
+            text_file.write('\n')
+        text_file.close()
 
         return text
 
@@ -250,15 +294,18 @@ class Photo:
     def draw_all_segments(self):
 
         for cl_num in self.clusters:
-            # if cl_num != -1:
-            cluster = self.get_rectangles_by_cluster(cl_num)
-            cluster_rectangle = self.get_outer_rectangle(cluster)
-            topX, topY = cluster_rectangle.get_topLeft()
-            botX, botY = cluster_rectangle.get_bottomRight()
-            self.image = cv2.rectangle(self.image, [topX, topY], [botX, botY], (0, 0, 0))
+            if cl_num != -1:
+                cluster = self.get_rectangles_by_cluster(cl_num)
+                cluster_rectangle = self.get_outer_rectangle(cluster)
+                topX, topY = cluster_rectangle.get_topLeft()
+                botX, botY = cluster_rectangle.get_bottomRight()
+                self.image_copy = cv2.rectangle(self.image_copy, [topX, topY], [botX, botY], (0, 0, 0))
 
-        cv2.imwrite('Images/clustered_image.jpg', self.image)
+        # cv2.imwrite('Clustered_Invoices/clustered_image.jpg', self.image)
 
     def show_img(self):
         cv2.imshow("image", self.image)
         cv2.waitKey(0)
+
+    def save_processed(self):
+        cv2.imwrite(f'Clustered_Invoices/{self.path.split("/")[1]}.jpg', self.image_copy)
