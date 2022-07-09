@@ -1,41 +1,71 @@
-import json
-from Model.Photo import Photo
-from Model.TextProcessing import TextProcessing
+#performing flask imports
+from flask import Flask, request, jsonify
+import werkzeug
+import backend.extract_text as extrct
+from pathlib import Path
+import cv2
+import fitz
 
-if __name__ == '__main__':
-    acces_token = \
-        'eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJBY3Rpdml0aWVzIjoiIiwiR3JvdXBzIjoiYWVlMWI1MGQtM2QxYi00MDg4LWJjOWEtODBlNWIxM2U4MGM1LDJhOGY4ZjZjLWRmNDItNGU3Ny04YjRhLTM2MWY5YmMyZjFlMixmMGY5ZTUwYi0xNGFjLTRjYzItYmU0ZS01MTc3NjdkZjFiNjEsOTNlNmVkYjAtNDVlOC00NTg5LWE2ZmEtMjJkOTM5MDYwYWZjLDY4OTJkNzQ3LTQ2YmMtNDc4OC1hNGIxLWNkODc4ZGM2MzY0YyxkZWRlMDI5Mi1lMTYwLTRjOGYtYTc3Mi0zMjRlZWVkYzM3NjcsNzIzM2NlMTUtMjkyNS00ZTVhLTliYjMtNDBhMjZmOTY0YjBjLGUyZDczMWJhLTA5N2QtNDJiMi04MDliLTJlZTkwOGE4NmJlNyxkNzQ1ZTliMi0yZjdjLTQ3Y2YtYmYwNS02MzljMzBlMjE2ZTAsMDI4ODBhMGUtZWU2NS00ZjU0LWFjYzgtNTBkNTgwNmNkNmE3LDBiYWMyNDc5LTVjNzMtNGRiMC1iY2RkLTBjMDZhY2I5NjhmOCw1ZDdmZDBjMy1hMWU1LTQyZGUtODQ5MC0yZjgxYjU5YjRjYjcsNDBjM2NiOWQtMDc5OS00ZTJhLTllMTEtYzZkNGY1ZTdiYzMxLDViZDUzZjZmLWJkNmQtNGI2NS05Njk5LTE1ZDk4NDY0MzcyYSwyYjExMGIyNS01ZWZmLTRlN2UtOTkzOC04YWRhMGJiMTVmNjUsZjRjOTViMTctNmQ1ZC00NGNkLTgzMWUtMzI3NWI0M2NkMDEyLDgyZTgzZjg4LWU4OWMtNDg3Yi1hMzY5LWZjMzE0MzM4MGU0OSwxMzNkNWEyNS0xOGExLTRiZTMtOTJjZC0xMTk2MDg0NTcxMDUsNzg5OTFmYWItOWRhZS00ZTc4LWI5OTYtYjE0ZjBmOTI5ZThhLDU2ZTUwNDQ2LTFhMGUtNGY2NC04NTgyLWMxYzNhOWVkYmE1YyIsInVuaXF1ZV9uYW1lIjoiSW9udXQuTWloYWlAZ2VwLmNvbSIsImV4cCI6MTY1NjU5NTg1MCwiaXNzIjoiaHR0cHM6Ly9wbGF0Zm9ybWRldi5nZXAuY29tLyIsImF1ZCI6Imh0dHBzOi8vcGxhdGZvcm1kZXYuZ2VwLmNvbS8ifQ.Ubmk5gVjedNEu6MucIcCgydufyCxZGQaMvqNKhAomVI'
+from backend.extract_table.main import get_table_corners
+from backend.extract_text.main import extract_text
+from frontend.straighten_image.main import straighten_image
 
-    # gep_table = [79, 549, 920, 971]
-    # file = r'Invoices/CXN904KL.jpg'
+app = Flask(__name__) #intance of our flask application
 
-    gep_ph = [121, 542, 868, 914]
-    file = r'Invoices/CXN904KL_Photo.png'
+@app.route('/upload', methods=["POST"])
+def upload():
+    if(request.method == "POST"):
+        file = request.files['file']
+        filename = werkzeug.utils.secure_filename(file.filename)
+        print(filename)
+        file.save("C:/Users/andre/Desktop/gep/AI_Domain_Models/Images/"+filename)
+        if(filename[-3:]=='pdf'):
+            processPdf(filename[:-4])
+        else:
+            process_image(filename)
+        # img = cv2.imread("C:/Users/andre/Desktop/gep/AI_Domain_Models/Images/"+filename)
+        return jsonify({
+            "message": "File Uploaded Successfully"
+        })
 
-    # dell = [51, 629, 963, 829]
-    # file = r'Invoices/K0AC99Q.png'
 
-    # inv_table = [88, 548, 917, 1071]
-    # bolt_table = [58, 485, 944, 563]
+@app.route('/token', methods=["POST"])
+def token():
+    if (request.method == "POST"):
+        global token
+        request_data = request.get_json()
+        token = request_data['token']
+        print("token: ", token)
+        return jsonify({
+            "message": "Token received"
+        })
 
-    # file = r"C:\Users\Florian Moga\Desktop\GEP\Rechnung-12000032162-VR130027438-1.jpg"
-    # file = r'C:\Users\Florian Moga\Desktop\GEP\Invoice Florian Moga 2208883908600452-1.jpg'
+def process_image(file):
+    print('processing...')
+    img = cv2.imread("C:/Users/andre/Desktop/gep/AI_Domain_Models/Images/"+file)
+    out = straighten_image(img)
+    corners = get_table_corners(out)
+    #[79, 549, 920, 1001]
+    # de_aratat = out.copy()
+    # cv2.rectangle(out, (corners[0] - 1, corners[1] - 1), (corners[0] + 1, corners[1] + 1), (0, 0, 255), 2)
+    # cv2.rectangle(out, (corners[2] - 1, corners[3] - 1), (corners[2] + 1, corners[3] + 1), (0, 0, 255), 2)
+    # cv2.imshow("segments", de_aratat)
+    # cv2.waitKey(0)
+    filepath = "C:/Users/andre/Desktop/gep/AI_Domain_Models/Images/resized_"+file
+    # cv2.imwrite(filepath, out)
+    extract_text(filepath, corners, token)
 
-    original_invoice = Photo(file)
-    original_invoice.set_table(gep_ph)
-    original_invoice.define_clusters()
-    original_invoice.associate_clusters()
-    original_invoice.draw_all_segments()
-    original_invoice.save_processed()
-    # original_invoice.show_img()
+def processPdf(filename):
+    pdffile = "C:/Users/andre/Desktop/gep/AI_Domain_Models/Images/"+filename+".pdf"
+    doc = fitz.open(pdffile)
+    page = doc.load_page(0)  # number of page
+    pix = page.get_pixmap()
+    output = "C:/Users/andre/Desktop/gep/AI_Domain_Models/Images/"+filename+".png"
+    pix.save(output)
+    img = cv2.imread("C:/Users/andre/Desktop/gep/AI_Domain_Models/Images/"+filename+".png")
+    corners = get_table_corners(img)
+    extract_text("C:/Users/andre/Desktop/gep/AI_Domain_Models/Images/"+filename+".png", corners, token)
 
-    text = original_invoice.get_text_from_segments()
 
-    process_text = TextProcessing(text)
-    nameJSON = process_text.createJSON('JSON/structure.json')
-
-    with open('JSON/' + nameJSON) as json_file:
-        myJSON = json.load(json_file)
-
-    process_text.set_dictionary(myJSON)
-    # process_text.createRequestGEP(acces_token)
+if __name__ == "__main__":
+    app.run(debug = True, port=8000) #debug will allow changes without shutting down the server
