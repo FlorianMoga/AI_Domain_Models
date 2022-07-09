@@ -46,11 +46,22 @@ Go to the backend directory
   cd AI_Domain_Models/backend
 ```
 
+Change all Paths to your specific case.
+
 Install dependencies
 
 ```bash
   npm install requirements.txt
 ```
+
+Go to the root directory
+
+```bash
+  cd AI_Domain_Models
+```
+
+And start the main.py .
+You will soon get to see a line in the terminal similar to "" 
 
 Use ngrok(https://ngrok.com/download) to forward localhost
 
