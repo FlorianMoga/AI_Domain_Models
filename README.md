@@ -1,16 +1,16 @@
 
 # Domain Model enabled AI Algorithms
 
-This repo has the goal of streamlining a way to transform invoices into domain models. For that it uses an frontend component for ingesting the invoices in pdf or image format and a backend component to handle all the processing  and conversion.
+This repo has the goal of streamlining a way to transform invoices into domain models. For that, it uses a frontend component for ingesting the invoices in PDF or image format and a backend component to handle all the processing  and conversion.
 
 
 
 
 ## Frontend
 
-The app is written in Flutter. It provieds three pages in a menu:
-- Home page, where you can enter a new domain model or populate an existing one. after creating a new DM it will not dynamically be added to the existing models cards
-- Domain Models, where it will be displayed the link provided for the Domain Models visualisation
+The app is written in Flutter. It provides three pages in a menu:
+- Home page, where you can enter a new domain model or populate an existing one. After creating a new DM, it will not dynamically be added to the existing models cards
+- Domain Models, where it will be displayed the link provided for the Domain Models visualization
 - Initialize page, where one can enter the link for the backend access, the token needed for the GEP Domain Model creation tool and the link to the website displaying the Domain Models created
 
 
@@ -18,9 +18,9 @@ The app is written in Flutter. It provieds three pages in a menu:
 
 It has four parts:
 - the main file present in the root folder, containing the Flask component that exposes the token retrieval endpoint and the invoice file retrieval endpoint
-- the main file present in the frontend/straighten_image subfolder, that straightens the image and gives it an A4 aspect ration
-- the main file present in the backend/extract_table subfolder using hardcoded data from the Jupiter notebook found in the same folder
-- the main file present in the backend/extract_text subfolder, that calls on all the methods to trsnpose the information from the invoice file into data in a TXT and JSON format, output files found in their respective folders
+- the main file present in the frontend/straighten_image subfolder, that straightens the image and gives it an A4 aspect ratio
+- the main file present in the backend/extract_table subfolder using hard-coded data from the Jupiter notebook found in the same folder
+- the main file present in the backend/extract_text subfolder, that calls on all the methods to transpose the information from the invoice file into data in a TXT and JSON format, output files found in their respective folders
 
 
 ## Run Locally
@@ -61,7 +61,8 @@ Go to the root directory
 ```
 
 And start the main.py .
-You will soon get to see a line in the terminal similar to "" 
+You will soon get to see a line in the terminal similar to "Running on http://127.0.0.1:8000/"  .
+The last number is the flask port that we will use later.
 
 Use ngrok(https://ngrok.com/download) to forward localhost
 
@@ -82,7 +83,7 @@ Go to the frontend directory
   cd AI_Domain_Models/frontend
 ```
 
-Install dependancies
+Install dependencies
 ```bash
    flutter pub get
 ```
@@ -91,7 +92,7 @@ Use Android Studio's Virtual Device Manager to create a new device.
 After its creation, press the play button to start it.
 
 Go to your IDE and run the app inside the Virtual Device.
-For example in Intellj the IDE will autmoatically detect the virutal device, so you have to just press play.
+For example, in IntelliJ the IDE will automatically detect the virtual device, so you have to just press play.
 
 Inside the app initialize all the values.
 
@@ -103,7 +104,7 @@ You're done 👌
 
 ## Features
 
-- Pdf and image inputs
+- PDF and image inputs
 - Image preprocessing
 - Logo and table detection
 - Text extraction algorithms
@@ -159,4 +160,3 @@ You're done 👌
 - **[@floriankpq](https://www.github.com/floriankpq)**
 - **[@coto24](https://github.com/coto24)**
 - [@includeSimon](https://github.com/includeSimon)
-
